@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Response
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List
@@ -30,7 +31,7 @@ app = FastAPI(title="AIOps Quality Inference Service", version="1.0.0")
 # --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "model" / "model.pkl"
-MODEL_VERSION = "0.3.0"
+MODEL_VERSION = os.getenv("MODEL_VERSION", "0.3.0")
 model = None
 
 # --------------------------------------------------
