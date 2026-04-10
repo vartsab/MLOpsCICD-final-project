@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: vartsab/mlops-quality-service
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 8000
+
+container:
+  port: 8000
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+livenessProbe:
+  path: /health
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+readinessProbe:
+  path: /health
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/metrics"
+  prometheus.io/port: "8000"
+
+env:
+  - name: MODEL_VERSION
+    value: "0.2.0"
