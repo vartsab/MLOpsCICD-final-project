@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aiops-quality-service
+  namespace: infra-tools
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/vartsab/MLOpsCICD-final-project.git
+    targetRevision: final-project
+    path: helm
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mlops-final
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
