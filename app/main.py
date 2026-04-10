@@ -146,7 +146,14 @@ def predict_endpoint(request: PredictRequest):
 
     if drift_detected:
         DRIFT_COUNT.inc()
-        logger.warning("Drift detected")
+        retrain_webhook_url = os.getenv("RETRAIN_WEBHOOK_URL", "")
+
+        if retrain_webhook_url:
+            logger.warning(
+                f"Drift detected. Retrain webhook is configured: {retrain_webhook_url}"
+            )
+        else:
+            logger.warning("Drift detected. Retrain webhook is not configured.")
 
     latency_seconds = time.time() - start_time
     PREDICTION_LATENCY.observe(latency_seconds)
