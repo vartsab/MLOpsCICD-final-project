@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vartsab/mlops-quality-service
-  tag: "1664ed97"
+  tag: "7288aea"
   pullPolicy: Always
 
 service:
