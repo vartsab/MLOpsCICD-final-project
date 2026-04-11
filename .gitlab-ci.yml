@@ -1,6 +1,7 @@
 stages:
   - train
   - build
+  - gitops
   - retrain
 
 variables:
@@ -42,6 +43,22 @@ build-image:
       artifacts: true
   rules:
     - if: $CI_COMMIT_BRANCH
+
+update-helm-values:
+  stage: gitops
+  image: python:3.11-slim
+  script:
+    - chmod +x scripts/update_image_tag.sh
+    - ./scripts/update_image_tag.sh "$CI_COMMIT_SHORT_SHA"
+    - grep -A3 '^image:' helm/values.yaml
+  artifacts:
+    paths:
+      - helm/values.yaml
+    expire_in: 1 week
+  needs:
+    - job: build-image
+  rules:
+    - if: $CI_COMMIT_BRANCH == "final-project"
 
 retrain-model:
   stage: retrain
