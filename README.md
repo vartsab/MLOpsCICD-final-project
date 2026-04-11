@@ -186,6 +186,9 @@ GitLab → Pipelines → Run retrain-model
   - no ML model registry
   - no automatic approval gate before redeploying retrained models
 - Loki/Promtail integration is represented through stdout-compatible logging and project structure, but may require additional cluster-side installation depending on the environment.
+
+*Note*: Retraining is triggered manually via GitLab CI to ensure controlled deployment and avoid unintended model updates.
+
 ---
 ## Result
 The system successfully demonstrates:
