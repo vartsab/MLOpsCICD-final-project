@@ -46,15 +46,25 @@ build-image:
 
 update-helm-values:
   stage: gitops
-  image: python:3.11-slim
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache bash git sed
+    - git config --global user.email "gitlab-ci@example.com"
+    - git config --global user.name "GitLab CI"
   script:
     - chmod +x scripts/update_image_tag.sh
     - ./scripts/update_image_tag.sh "$CI_COMMIT_SHORT_SHA"
     - grep -A3 '^image:' helm/values.yaml
-  artifacts:
-    paths:
-      - helm/values.yaml
-    expire_in: 1 week
+    - git checkout "$CI_COMMIT_BRANCH"
+    - git add helm/values.yaml
+    - |
+      if git diff --cached --quiet; then
+        echo "No changes to commit"
+      else
+        git commit -m "Update Helm image tag to $CI_COMMIT_SHORT_SHA [skip ci]"
+        git remote set-url origin "https://oauth2:${GITHUB_TOKEN}@github.com/vartsab/MLOpsCICD-final-project.git"
+        git push origin HEAD:$CI_COMMIT_BRANCH
+      fi
   needs:
     - job: build-image
   rules:
