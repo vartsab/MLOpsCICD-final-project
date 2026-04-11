@@ -1,0 +1,63 @@
+stages:
+  - train
+  - build
+  - retrain
+
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+  IMAGE_NAME: $CI_REGISTRY_IMAGE
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+
+train-model:
+  stage: train
+  image: python:3.11-slim
+  before_script:
+    - python --version
+    - pip install --no-cache-dir -r requirements.txt
+  script:
+    - python model/train.py
+    - ls -l model/
+  artifacts:
+    paths:
+      - model/model.pkl
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+build-image:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+  script:
+    - docker build -t "$IMAGE_NAME:$IMAGE_TAG" .
+    - docker tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME:latest"
+    - docker push "$IMAGE_NAME:$IMAGE_TAG"
+    - docker push "$IMAGE_NAME:latest"
+  needs:
+    - job: train-model
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+retrain-model:
+  stage: retrain
+  image: python:3.11-slim
+  before_script:
+    - python --version
+    - pip install --no-cache-dir -r requirements.txt
+  script:
+    - echo "Manual retrain started"
+    - python model/train.py
+    - ls -l model/
+    - echo "Retrain finished. Next step is image rebuild/push via pipeline."
+  artifacts:
+    paths:
+      - model/model.pkl
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "final-project"
+      when: manual
