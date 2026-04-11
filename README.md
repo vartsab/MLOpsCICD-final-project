@@ -3,7 +3,7 @@
 ## Project Overview
 This project implements an end-to-end MLOps pipeline for deploying, monitoring, and retraining a machine learning model using modern DevOps and GitOps practices.
 
-The system includes:
+### The system includes:
 - FastAPI inference service
 - Model retraining pipeline
 - Dockerized deployment
@@ -12,6 +12,26 @@ The system includes:
 - Prometheus metrics
 - Drift detection logic
 - GitLab CI/CD pipeline
+### Repositories and Delivery Flow
+This project uses two Git platforms for different responsibilities:
+- **GitHub** stores the GitOps source of truth for Kubernetes deployment:
+  - Helm chart
+  - ArgoCD application
+  - deployment configuration
+- **GitLab** is used for CI/CD:
+  - model training
+  - Docker image build
+  - Helm values update automation
+  - manual retrain job
+### Current flow
+1. Code changes are pushed to GitLab and/or GitHub
+2. GitLab CI builds a new Docker image
+3. GitLab CI updates `helm/values.yaml` with a new image tag
+4. The updated configuration is pushed to GitHub
+5. ArgoCD detects the GitHub change and redeploys the application
+### Project links
+- **GitHub repository (GitOps source):** `https://github.com/vartsab/MLOpsCICD-final-project`
+- **GitLab project (CI/CD):** `https://gitlab.com/vartsab/mlops-final-project`
 ---
 ##  Architecture
 Flow:
@@ -156,16 +176,34 @@ GitLab → Pipelines → Run retrain-model
 - Fully containerized ML service
 ---
 ## Known Limitations
-- Drift detection is rule-based (mock)
-- Retrain is manual trigger (not fully automated)
-- CI uses GitLab registry but Helm uses Docker Hub
-- No model version registry (MLflow optional)
+- Drift detection is currently rule-based and serves as a lightweight placeholder rather than a production-grade statistical detector.
+- The retrain pipeline is manual and controlled through GitLab CI. This is intentional for safety and demonstration purposes.
+- The project currently uses a mixed registry approach:
+  - deployment images are pulled from Docker Hub
+  - GitLab CI is responsible for CI/CD orchestration
+- Full production hardening is not implemented yet:
+  - no secret manager integration
+  - no ML model registry
+  - no automatic approval gate before redeploying retrained models
+- Loki/Promtail integration is represented through stdout-compatible logging and project structure, but may require additional cluster-side installation depending on the environment.
 ---
 ## Result
-
 The system successfully demonstrates:
 - Automated ML deployment
 - Monitoring and observability
 - Controlled retraining
 - GitOps-based continuous delivery
+---
+## Verification Summary
+
+The following project capabilities were verified during implementation:
+- FastAPI inference service runs in Kubernetes
+- `/health`, `/predict`, and `/metrics` endpoints work
+- logs are available through `kubectl logs`
+- drift events are visible in logs
+- Prometheus-compatible metrics are exported
+- Helm chart deploys successfully
+- ArgoCD auto-sync works after Git changes
+- GitLab CI runs training, build, GitOps update, and manual retrain jobs
+- image tag updates trigger ArgoCD-driven rollout
 ---
